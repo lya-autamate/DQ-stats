@@ -1,0 +1,44 @@
+name: Monthly JIRA Report
+
+on:
+  schedule:
+    # 09:05 Asia/Tashkent = 04:05 UTC (UTC+5)
+    - cron: "5 4 1 * *"
+  workflow_dispatch: {}  # вручную на всякий случай
+
+jobs:
+  build-and-send:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tashkent
+      # Если ноутбук в другом месте — поправь путь
+      NB_PATH: ./notebooks/jira_report.ipynb
+      OUT_DIR: ./notebooks
+      SLACK_CHANNEL_NAME: dq_chat
+      # Переменные для твоего ноутбука (если он читает их из env)
+      JIRA_SERVER: ${{ secrets.JIRA_SERVER }}
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # (опционально) если ноутбук требует доп. системных пакетов, установи их шагом выше
+
+      - name: Run notebook and send files to Slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          # Любые другие ENV, которые использует твой ноутбук (например, пути, параметры) — добавляй сюда
+        run: |
+          python run_report.py
