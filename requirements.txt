@@ -1,0 +1,9 @@
+papermill
+nbconvert
+slack_sdk
+python-dotenv
+pandas
+numpy
+matplotlib
+jira
+python-dateutil
